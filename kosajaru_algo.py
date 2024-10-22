@@ -1,5 +1,11 @@
 from collections import defaultdict
 
+"""
+Since we are dealing with a directed graph we will use Kosaraju's algorithm 
+This algorithm has a linear Time Complexity
+And uses the Depth First Search Algorithm 
+"""
+
 class KosarajuSCC:
     def __init__(self, graph, airports):
         self.graph = graph
@@ -7,7 +13,8 @@ class KosarajuSCC:
 
     def kosaraju_scc(self):
         """Find SCCs using Kosaraju's algorithm."""
-        # Step 1: First DFS to get finishing times (reverse post-order)
+        # Step 1: First Depth First Search to get finishing times (reverse post-order)
+        #Depth First Search is a graph traversal algorithm used to explore nodes and edges of a graph
         def dfs_first(node, visited, finish_order):
             visited.add(node)
             for neighbor in self.graph[node]:
@@ -15,7 +22,7 @@ class KosarajuSCC:
                     dfs_first(neighbor, visited, finish_order)
             finish_order.append(node)
 
-        # Step 2: Second DFS on reversed graph
+        # Step 2: Second Depth First Search on reversed graph (from end to begining)
         def dfs_second(node, visited, component, reversed_graph):
             visited.add(node)
             component.append(node)
