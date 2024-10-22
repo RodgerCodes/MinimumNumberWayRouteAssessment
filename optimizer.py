@@ -56,10 +56,10 @@ class FlightRoutesOptimizer:
             for dst in component_graph[src]:
                 in_degrees[dst] += 1
 
-        # Count components with in-degree = 0 (excluding start component)
-        additional_routes = 0
-        for i in range(len(components)):
-            if i != start_component and in_degrees[i] == 0:
-                additional_routes += 1
+        # Count components with in-degree = 0 (excluding the start component)
+        zero_in_degree_count = 0
+        for component_id in range(len(components)):
+            if component_id != start_component and in_degrees[component_id] == 0:
+                zero_in_degree_count += 1
 
-        return additional_routes
+        return zero_in_degree_count
