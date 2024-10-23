@@ -4,4 +4,4 @@
 ## Results
 
 Taking EWR in our starting node
-![Results](https://raw.githubusercontent.com/RodgerCodes/MinimumNumberWayRouteAssessment/refs/heads/main/results/results.png)
+![Results](https://raw.githubusercontent.com/RodgerCodes/MinimumNumberWayRouteAssessment/refs/heads/main/results/results_up.png)
