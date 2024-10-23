@@ -1,19 +1,38 @@
-from optimizer import FlightRoutesOptimizer
+from optimizer import FlightRouteOptimizer
+
 
 if __name__ == "__main__":
-    # Sample data from the diagram
     airports = ['DSM', 'ORD', 'BGI', 'LGA', 'JFK', 'HND', 'ICN', 
                 'EWR', 'TLV', 'DEL', 'DOH', 'CDG', 'SIN', 'BUD', 
                 'SFO', 'SAN', 'EYW', 'LHR']
 
     routes = [
-        ('DSM', 'ORD'), ('ORD', 'BGI'), ('BGI', 'LGA'), ('JFK', 'LGA'),
-        ('ICN', 'JFK'), ('HND', 'ICN'), ('TLV', 'DEL'), ('DEL', 'DOH'),
-        ('DEL', 'CDG'), ('CDG', 'BUD'), ('CDG', 'SIN'), ('SIN', 'JFK'),
-        ('SFO', 'SAN'), ('SFO', 'DSM'), ('EYW', 'LHR'), ('SAN', 'EYW'),
-        ('LHR', 'SFO'), ('EWR', 'HND')
+        ('EWR', 'HND'),
+        ('HND', 'ICN'),
+        ('ICN', 'JFK'),
+        ('JFK', 'LGA'),
+        ('TLV', 'DEL'),
+        ('DEL', 'CDG'),
+        ('DEL', 'DOH'),
+        ('CDG', 'SIN'),
+        ('CDG', 'BUD'),
+        ('SIN', 'JFK'),
+        ('SFO', 'SAN'),
+        ('SFO', 'DSM'),
+        ('SAN', 'EYW'),
+        ('EYW', 'LHR'),
+        ('LHR', 'SFO'),
+        ('DSM', 'ORD'),
+        ('ORD', 'BGI'),
+        ('BGI', 'LGA')
     ]
 
-    optimizer = FlightRoutesOptimizer(routes, airports)
-    result = optimizer.min_additional_routes('DSM')
-    print(f"Minimum additional routes needed: {result}")
+    optimizer = FlightRouteOptimizer(routes, airports)
+    num_routes, unreachable_airports = optimizer.min_additional_routes('EWR')
+
+    print(f"Starting airport: EWR")
+    print(f"Minimum number of additional routes needed: {num_routes}")
+    print(f"Unreachable airports: {unreachable_airports}")
+    print("\nPossible new routes to add:")
+    for airport in unreachable_airports:
+        print(f"EWR -> {airport}")

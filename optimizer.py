@@ -1,65 +1,76 @@
-from graph import DirectedGraph
-from collections import defaultdict
-from kosajaru_algo import KosarajuSCC
+from graph import Graph
+from kosajaru_algo import KosarajuAlgorithm
 
-class FlightRoutesOptimizer:
+
+class FlightRouteOptimizer:
+    """
+    Class to optimize flight routes by minimizing the number of additional routes required
+    to make all airports reachable from a starting airport.
+    """
     def __init__(self, routes, airports):
-        """Initialize the optimizer with routes and airports."""
         self.routes = routes
         self.airports = airports
-        self.graph = DirectedGraph()
+        self.graph = Graph(airports)
         self.build_graph()
 
     def build_graph(self):
-        """Build the directed graph with the provided routes."""
-        for src, dst in self.routes:
-            self.graph.add_edge(src, dst)
+        """
+        Build the directed graph using the provided routes.
+        """
+        for route in self.routes:
+            self.graph.add_edge(route[0], route[1])
 
-    def build_component_graph(self, components):
-        """Build a graph where each node represents an SCC."""
-        # Create mapping of airport to component ID
-        airport_to_component = {}
-        for i, component in enumerate(components):
-            for airport in component:
-                airport_to_component[airport] = i
+    def find_reachable_airports(self, start_airport):
+        """
+        Find all reachable airports using Kosaraju's Algorithm:
+        1. Find Strongly Connected Components (SCCs).
+        2. Compress the graph based on SCCs.
+        3. Determine which SCCs have no incoming edges (in-degree = 0), excluding the start SCC.
+        """
+        kosaraju = KosarajuAlgorithm(self.graph)
+        sccs = kosaraju.find_scc()
 
-        # Build component graph
-        component_graph = defaultdict(set)
-        for src in self.graph.graph:
-            src_component = airport_to_component[src]
-            for dst in self.graph.graph[src]:
-                dst_component = airport_to_component[dst]
-                if src_component != dst_component:
-                    component_graph[src_component].add(dst_component)
+        # Step 2: Compress the graph using the SCCs (treat each SCC as a node)
+        scc_map = {}
+        for i, scc in enumerate(sccs):
+            for node in scc:
+                scc_map[node] = i
 
-        return dict(component_graph), airport_to_component
+        compressed_graph = Graph(range(len(sccs)))
+        for u, v in self.routes:
+            u_scc = scc_map[u]
+            v_scc = scc_map[v]
+            if u_scc != v_scc:
+                compressed_graph.add_edge(u_scc, v_scc)
+
+        # Step 3: Calculate in-degree for each SCC in the compressed graph
+        in_degrees = [0] * len(sccs)
+        for u_scc in compressed_graph.graph:
+            for v_scc in compressed_graph.graph[u_scc]:
+                in_degrees[v_scc] += 1
+
+        # Find SCCs with in-degree = 0
+        zero_in_degree_sccs = []
+        start_scc = scc_map[start_airport]
+        for i in range(len(in_degrees)):
+            if in_degrees[i] == 0 and i != start_scc:
+                zero_in_degree_sccs.append(i)
+
+        return zero_in_degree_sccs, sccs, scc_map
 
     def min_additional_routes(self, start_airport):
-        """Calculate minimum number of additional routes needed."""
-        # Find SCCs
-        scc_finder = KosarajuSCC(self.graph.graph, self.airports)
-        components = scc_finder.kosaraju_scc()
+        """
+        Calculate the minimum number of additional one-way routes needed to make
+        all airports reachable from the starting airport.
+        """
+        zero_in_degree_sccs, sccs, scc_map = self.find_reachable_airports(start_airport)
 
-        # If only one component, all airports are already reachable
-        if len(components) == 1:
-            return 0
+        # We need one route to each SCC that has in-degree = 0
+        num_additional_routes = len(zero_in_degree_sccs)
 
-        # Build component graph
-        component_graph, airport_to_component = self.build_component_graph(components)
+        # Convert SCC indices back to airport names for suggestions
+        unreachable_airports = []
+        for scc_index in zero_in_degree_sccs:
+            unreachable_airports.append(sccs[scc_index][0])  # Pick one airport from the SCC
 
-        # Find start component
-        start_component = airport_to_component[start_airport]
-
-        # Calculate in-degrees for each component
-        in_degrees = defaultdict(int)
-        for src in component_graph:
-            for dst in component_graph[src]:
-                in_degrees[dst] += 1
-
-        # Count components with in-degree = 0 (excluding the start component)
-        zero_in_degree_count = 0
-        for component_id in range(len(components)):
-            if component_id != start_component and in_degrees[component_id] == 0:
-                zero_in_degree_count += 1
-
-        return zero_in_degree_count
+        return num_additional_routes, unreachable_airports
